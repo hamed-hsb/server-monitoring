@@ -5,6 +5,9 @@ url_address=""
 email_address=""
 timer=""
 
+CONFIG_FILE_NAME="sm.config"
+LOG_FILE_NAME="sm.log"
+
 
 function main(){
 if  existsConfigFile $0 ; then
@@ -34,7 +37,7 @@ saveConfigToFile $URL_ADD  $EMAIL_ADD $TIMER
 function run(){
 echo "run function"
 readConfigFile
-execute $url_address $timer
+execute $url_address
 }
 
 function existsConfigFile(){
@@ -49,15 +52,15 @@ fi
 function createConfigFile(){
 if existsConfigFile $0 ; then
 # Config file is not found
-touch sm.config
+touch $CONFIG_FILE_NAME
 fi
 }
 
 function saveConfigToFile(){
 cat << EOF > sm.config
-URL_ADDRESS:$1
-EMAIL_ADDRESS:$2
-TIMER:$3
+URL_ADDRESS: $1
+EMAIL_ADDRESS: $2
+TIMER: $3
 EOF
 }
 
@@ -65,6 +68,7 @@ function readConfigFile(){
 while IFS= read -r line
 do
 
+#echo $line
 	if [[ $line == *"URL_ADDRESS"* ]];then
 	url_address=$line
 	url_address=$(spliteRowValue $url_address)
@@ -84,7 +88,7 @@ done < sm.config
 }
 
 function spliteRowValue(){
-echo "$2"
+echo $2
 }
 
 function checkUrlHttpStatusCode(){
@@ -99,7 +103,7 @@ do
 response=$(checkUrlHttpStatusCode $1)
 current_date_time="`date +%Y%m%d%H%M%S`"
 echo "time: $current_date_time url: $1 status: $response"
-sleep $2s
+sleep 60
 done
 }
 
