@@ -9,10 +9,11 @@ CONFIG_FILE_NAME="sm.config"
 LOG_FILE_NAME="sm.log"
 
 
-function main(){
+main(){
 if  existsConfigFile $0 ; then
 # Config file is not found
 createConfigFile
+createLoggerFile
 init
 else
 # Config file is the directory
@@ -20,7 +21,7 @@ run
 fi
 }
 
-function init(){
+init(){
 echo "Start Config..."
 read -p "Enter Website/Domain name: " URL_ADD
 read -p "Enter your email: " EMAIL_ADD
@@ -34,29 +35,46 @@ echo "Your Email address is : $TIMER"
 saveConfigToFile $URL_ADD  $EMAIL_ADD $TIMER
 }
 
-function run(){
+run(){
 echo "run function"
 readConfigFile
 execute $url_address
 }
 
-function existsConfigFile(){
-if [ ! -f sm.config ]; then
+existsConfigFile(){
+if [ ! -f $CONFIG_FILE_NAME ]; then
 return 0;
 else
 return 1;
 fi
 }
 
+existsLoggerFile(){
+if [ ! -f $LOG_FILE_NAME ]; then
+return 0;
+else 
+return 1;
+fi
+}
 
-function createConfigFile(){
+createLoggerFile(){
+if existsLoggerFile $0 ; then
+touch $LOG_FILE_NAME
+fi
+}
+
+insertToLoggerFile(){
+echo "`date` url:$1  Code:$2 ."$'\n' >> $LOG_FILE_NAME
+}
+
+createConfigFile(){
 if existsConfigFile $0 ; then
 # Config file is not found
 touch $CONFIG_FILE_NAME
 fi
 }
 
-function saveConfigToFile(){
+saveConfigToFile(){
 cat << EOF > sm.config
 URL_ADDRESS: $1
 EMAIL_ADDRESS: $2
@@ -64,7 +82,7 @@ TIMER: $3
 EOF
 }
 
-function readConfigFile(){
+readConfigFile(){
 while IFS= read -r line
 do
 
@@ -87,23 +105,24 @@ do
 done < sm.config
 }
 
-function spliteRowValue(){
+spliteRowValue(){
 echo $2
 }
 
-function checkUrlHttpStatusCode(){
+checkUrlHttpStatusCode(){
 status=$(curl --write-out '%{http_code}' --silent --output /dev/null $1)
 echo $status
 }
 
 
-function execute(){
+execute(){
 for((;;))
 do
 response=$(checkUrlHttpStatusCode $1)
 current_date_time="`date +%Y%m%d%H%M%S`"
 echo "time: $current_date_time url: $1 status: $response"
 sleep 60
+insertToLoggerFile $1 $responsels
 done
 }
 
