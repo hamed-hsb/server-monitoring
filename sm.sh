@@ -1,5 +1,8 @@
 #!/bin/bash
 
+is_url_address_field=0
+is_email_address_field=0
+is_timer_field=0
 
 url_address=""
 email_address=""
@@ -23,12 +26,44 @@ if existsLoggerFile $0 ; then
 createLoggerFile
 fi
 
+readConfigFile
+
+if isConfigFileFieldsCorrect $0 ; then 
+echo "config file require to repaire"
+clearConfigFile
 init
+fi
+
+run
+
 #else
 # Config file is the directory
 #run
 #fi
 }
+
+isConfigFileFieldsCorrect(){
+if [[ $is_url_address_field == 0 ]] ; then
+return 0;
+fi
+ 
+if [[ $is_email_address_field == 0 ]] ; then
+return 0;	
+fi
+
+if [[ $is_timer_field == 0 ]] ; then
+return 0;
+fi
+
+
+return 1;
+}
+
+clearConfigFile(){
+truncate -s 0 sm.config
+}
+
+
 
 init(){
 echo "Start Config..."
@@ -88,9 +123,12 @@ LOG_FILE_NAME="`date +%Y%m%d`.log"
 if existsLoggerFile $0 ; then
 touch $LOG_FILE_NAME
 fi
+
+cd ..
 }
 
 insertToLoggerFile(){
+cd logs
 echo "`date` url:$1  Code:$2 ."$'\n' >> $LOG_FILE_NAME
 }
 
@@ -115,17 +153,19 @@ do
 
 #echo $line
 	if [[ $line == *"URL_ADDRESS"* ]];then
+	is_url_address_field=1
 	url_address=$line
 	url_address=$(spliteRowValue $url_address)
 	fi 
 
 	if [[ $line == *"EMAIL_ADDRESS"*  ]]; then
+	is_email_address_field=1
 	email_address=$line
 	email_address=$(spliteRowValue $email_address)
 	fi
 
 	if [[ $line == *"TIMER"*  ]]; then
-	timer=$line
+	is_timer_field=$line
 	timer=$(spliteRowValue $timer)
 	fi
 
