@@ -13,12 +13,21 @@ main(){
 if  existsConfigFile $0 ; then
 # Config file is not found
 createConfigFile
-createLoggerFile
-init
-else
-# Config file is the directory
-run
 fi
+
+if existsLogsDirectory $0 ; then
+createLogsdirectory
+fi
+
+if existsLoggerFile $0 ; then
+createLoggerFile
+fi
+
+init
+#else
+# Config file is the directory
+#run
+#fi
 }
 
 init(){
@@ -32,11 +41,14 @@ echo "Your Email address is : $EMAIL_ADD"
 echo "Your Email address is : $TIMER"
 
 
+
 saveConfigToFile $URL_ADD  $EMAIL_ADD $TIMER
 }
 
 run(){
-echo "run function"
+echo "Start..."
+echo "Address:$url_address"
+
 readConfigFile
 execute $url_address
 }
@@ -50,6 +62,7 @@ fi
 }
 
 existsLoggerFile(){
+LOG_FILE_NAME="`date +%Y%m%d`.log"
 if [ ! -f $LOG_FILE_NAME ]; then
 return 0;
 else 
@@ -57,7 +70,21 @@ return 1;
 fi
 }
 
+existsLogsDirectory(){
+DIR="`pwd`/logs"
+if [ -d "$DIR" ]; then
+return 1;
+else
+return 0;
+fi
+}
+
+createLogsdirectory(){
+mkdir logs
+}
 createLoggerFile(){
+cd logs
+LOG_FILE_NAME="`date +%Y%m%d`.log"
 if existsLoggerFile $0 ; then
 touch $LOG_FILE_NAME
 fi
@@ -122,7 +149,7 @@ response=$(checkUrlHttpStatusCode $1)
 current_date_time="`date +%Y%m%d%H%M%S`"
 echo "time: $current_date_time url: $1 status: $response"
 sleep 60
-insertToLoggerFile $1 $responsels
+insertToLoggerFile $1 $response
 done
 }
 
